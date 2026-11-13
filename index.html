@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Lilium Orientalis</title>
+<style>
+:root{color-scheme:dark;--bg:#0a0105;--fg:#f6e3e7;--dim:#c58f9d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html,body{height:100%;margin:0;background:var(--bg);overflow:hidden;font-family:Georgia,"Times New Roman",serif;color:var(--fg)}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+.title{position:fixed;left:18px;top:calc(env(safe-area-inset-top,0px) + 16px);font:600 13px/1.3 system-ui,sans-serif;letter-spacing:.08em;color:#c86a80}
+.title small{display:block;font-weight:400;font-size:9px;color:var(--dim);margin-top:4px}
+.card{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;box-sizing:border-box;padding:calc(env(safe-area-inset-top,0px) + 28px) 26px calc(env(safe-area-inset-bottom,0px) + 28px);background:radial-gradient(ellipse at 50% 30%,#330a18 0%,#120208 75%);text-align:center;opacity:0;pointer-events:none;transition:opacity 1.4s ease;overflow:auto}
+.card.show{opacity:1;pointer-events:auto}
+.card h2{margin:0 0 18px;font-size:28px;font-weight:600;color:#e0a0b0}
+.card p{margin:0;max-width:440px;font-size:17px;line-height:1.75}
+.btn{font:600 15px system-ui,sans-serif;color:#fff;background:#6b0f26;border:1px solid rgba(240,184,196,.5);border-radius:999px;padding:12px 28px;margin-top:28px;cursor:pointer}
+.next{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 28px);transform:translateX(-50%);margin:0;opacity:0;pointer-events:none;transition:opacity 1.5s ease}
+.next.show{opacity:1;pointer-events:auto}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style></head><body>
+<div class="title">LILIUM ORIENTALIS<small>3D BOTANICAL BLOOM</small></div>
+<button class="btn next" id="next">Next</button>
+<div class="card" id="card">
+<h2>For you, Mercy ❤️🫂</h2>
+<p>I know your heart is heavy right now, and there are no perfect words. But your pain is a measure of how deeply you loved, and that kind of love makes you rare, not weak. Be gentle with yourself. Cry when you need to, rest when you’re tired, and lean on me whenever you want. Like this lily, you will open again, slowly, in your own time. I’m right here, Mercy, and I’m not going anywhere.</p>
+<button class="btn" id="back">Watch it bloom again</button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setClearColor(0x0a0105);
+document.body.prepend(renderer.domElement);
+const scene=new THREE.Scene();
+const cam=new THREE.PerspectiveCamera(40,1,.1,100);
+function resize(){const w=innerWidth,h=innerHeight,a=w/h;renderer.setSize(w,h);cam.aspect=a;
+  cam.position.set(0,.3,Math.max(12,6.6/(0.364*2*a)));cam.lookAt(0,.2,0);cam.updateProjectionMatrix();}
+addEventListener('resize',resize);resize();
+
+scene.add(new THREE.AmbientLight(0xe8a0b0,.65));
+const dl=new THREE.DirectionalLight(0xffffff,.7);dl.position.set(2,5,6);scene.add(dl);
+const pl=new THREE.PointLight(0xd02848,1.3,30);pl.position.set(0,1,4);scene.add(pl);
+
+// soft glow behind
+(function(){const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');
+ const r=g.createRadialGradient(128,128,0,128,128,128);r.addColorStop(0,'rgba(140,15,45,.45)');r.addColorStop(1,'rgba(140,15,45,0)');
+ g.fillStyle=r;g.fillRect(0,0,256,256);
+ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c),blending:THREE.AdditiveBlending,depthWrite:false}));
+ s.scale.set(16,16,1);s.position.set(0,.5,-3);scene.add(s);})();
+
+// petal texture: dark base, lighter tips, dark spots
+function petalTex(){const c=document.createElement('canvas');c.width=256;c.height=512;const g=c.getContext('2d');
+ const gr=g.createLinearGradient(0,512,0,0);gr.addColorStop(0,'#3d0613');gr.addColorStop(.3,'#640c20');gr.addColorStop(.6,'#963050');gr.addColorStop(1,'#d79aa9');
+ g.fillStyle=gr;g.fillRect(0,0,256,512);
+ const rg=g.createRadialGradient(128,500,5,128,420,150);rg.addColorStop(0,'rgba(80,3,18,.9)');rg.addColorStop(1,'rgba(80,3,18,0)');
+ g.fillStyle=rg;g.fillRect(0,0,256,512);
+ for(let i=0;i<110;i++){const y=512-Math.random()*Math.random()*300-20;const spread=40+(512-y)*.12;
+  g.fillStyle='rgba(50,0,12,.85)';g.beginPath();g.arc(128+(Math.random()-.5)*spread*2,y,1.5+Math.random()*2.2,0,7);g.fill();}
+ return new THREE.CanvasTexture(c);}
+const petalMat=new THREE.MeshStandardMaterial({map:petalTex(),side:THREE.DoubleSide,roughness:.55,emissive:0x2e050f,emissiveIntensity:.6});
+
+function shaped(wf,L,cup,curl,segU=14,segV=8){
+ const g=new THREE.PlaneGeometry(1,1,segV,segU),p=g.attributes.position,uv=g.attributes.uv;
+ for(let i=0;i<p.count;i++){const u=uv.getY(i),v=uv.getX(i)*2-1,w=wf(u);
+  p.setXYZ(i,v*w,u*L,-cup*v*v*w+curl*Math.pow(u,2.2));}
+ g.computeVertexNormals();return g;}
+const petalGeo=shaped(u=>.07*(1-u)+.6*Math.sin(Math.PI*Math.pow(u,.78)),1.6,.3,.55);
+const leafGeo=shaped(u=>.5*Math.sin(Math.PI*Math.pow(u,.7)),2.6,.15,.5);
+const leafMat=new THREE.MeshStandardMaterial({color:0x143328,side:THREE.DoubleSide,roughness:.6});
+const stemMat=new THREE.MeshStandardMaterial({color:0x1c3a2c,roughness:.6});
+const root=new THREE.Group();scene.add(root);
+
+function makeFlower(){
+ const g=new THREE.Group(),petals=[],stams=[];
+ for(let i=0;i<6;i++){const p=new THREE.Group();p.rotation.y=i*Math.PI/3;
+  const m=new THREE.Mesh(petalGeo,petalMat);m.scale.setScalar(i%2?.93:1);p.add(m);g.add(p);petals.push(m);}
+ const fil=new THREE.MeshStandardMaterial({color:0xf0c8a0,roughness:.5});
+ const ant=new THREE.MeshStandardMaterial({color:0xc4561e,roughness:.6});
+ for(let i=0;i<7;i++){const p=new THREE.Group();p.rotation.y=i*Math.PI*2/6+.3;const s=new THREE.Group();
+  const L=i===6?1.35:1.1;
+  const c=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,L,6),fil);c.position.y=L/2;s.add(c);
+  const a=new THREE.Mesh(new THREE.SphereGeometry(1,10,8),i===6?new THREE.MeshStandardMaterial({color:0x8c1230}):ant);
+  a.scale.set(.05,i===6?.08:.2,.05);a.position.y=L;a.rotation.z=1.2;s.add(a);
+  p.add(s);g.add(p);stams.push(s);if(i===6)s.userData.long=1;}
+ g.userData={petals,stams};return g;}
+function setOpen(f,o){f.userData.petals.forEach((m,i)=>{m.rotation.x=.1+o*(1.0+(i%2?-.08:.05));});
+ f.userData.stams.forEach(s=>{s.rotation.x=.04+o*(s.userData.long?.15:.42);});}
+
+const specs=[{p:[-.9,2.3,0],rx:.55,rz:.25,b:[-.1,-4.3],d:0},
+ {p:[1.3,.3,.4],rx:.6,rz:-.45,b:[.2,-4.3],d:1.6},
+ {p:[-1.3,-1.6,.6],rx:.6,rz:.3,b:[-.2,-4.3],d:3.2}];
+const flowers=specs.map(s=>{
+ const f=makeFlower();f.position.set(...s.p);f.rotation.set(s.rx,0,s.rz);root.add(f);
+ const base=new THREE.Vector3(s.b[0],s.b[1],0),top=new THREE.Vector3(...s.p);
+ const mid=new THREE.Vector3((base.x+top.x)/2+(s.p[0]>0?-.3:.3),(base.y+top.y)/2,.1);
+ const t=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([base,mid,top]),24,.07,8),stemMat);root.add(t);
+ return {f,d:s.d,t};});
+
+// buds
+[[.35,3.2,-.2,.35],[1.6,1.9,-.4,-.6]].forEach(([x,y,z,r])=>{
+ const b=new THREE.Mesh(new THREE.SphereGeometry(1,16,14),new THREE.MeshStandardMaterial({color:0x5e2c3a,emissive:0x3a0a1a,emissiveIntensity:.5,roughness:.6}));
+ b.scale.set(.32,.85,.32);b.position.set(x,y,z);b.rotation.z=r;root.add(b);
+ const s=new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0,-4.3,-.1),new THREE.Vector3(x*.4,y/2-1,-.2),new THREE.Vector3(x,y-.5,z)]),20,.05,6),stemMat);root.add(s);});
+
+// leaves
+[[-.5,-3,.3,1.2,.2],[.6,-3.3,.2,-1.1,.1],[-.9,-2.3,.4,1.35,.5],[1,-2.6,.3,-1.3,.4],[0,-3.8,.5,.3,0]].forEach(([x,y,z,rz,ry])=>{
+ const l=new THREE.Mesh(leafGeo,leafMat);l.position.set(x,y,z);l.rotation.set(-.3,ry,-rz);l.scale.setScalar(.8);root.add(l);});
+
+// floating particles
+const N=90,pp=new Float32Array(N*3);
+for(let i=0;i<N;i++){pp.set([(Math.random()-.5)*10,(Math.random()-.5)*10,(Math.random()-.5)*5],i*3);}
+const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pp,3));
+const pts=new THREE.Points(pg,new THREE.PointsMaterial({color:0xd88898,size:.07,transparent:true,opacity:.7,blending:THREE.AdditiveBlending,depthWrite:false}));scene.add(pts);
+
+const ease=x=>x*x*(3-2*x);
+let t0=performance.now(),shown=false;
+const card=document.getElementById('card'),nextBtn=document.getElementById('next');
+const reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
+function tick(now){
+ const t=(now-t0)/1000;
+ flowers.forEach(o=>{const k=Math.min(1,Math.max(0,(t-.6-o.d)/7));const e=reduce?1:ease(k);
+  setOpen(o.f,e);o.f.scale.setScalar(.3+.7*e);});
+ root.rotation.y=reduce?0:Math.sin(t*.35)*.4;
+ root.position.y=reduce?0:(1-ease(Math.min(1,t/10)))*-.6;
+ const a=pg.attributes.position;
+ for(let i=0;i<N;i++){let y=a.getY(i)+.003;if(y>5)y=-5;a.setY(i,y);}a.needsUpdate=true;
+ if(t>9.5&&!shown){nextBtn.classList.add('show');shown=true;}
+ renderer.render(scene,cam);requestAnimationFrame(tick);}
+requestAnimationFrame(tick);
+const replay=()=>{t0=performance.now();shown=false;nextBtn.classList.remove('show');card.classList.remove('show');};
+nextBtn.onclick=()=>{card.classList.add('show');nextBtn.classList.remove('show');};
+document.getElementById('back').onclick=replay;
+addEventListener('pointerdown',e=>{if(shown&&!card.classList.contains('show')&&!e.target.closest('button'))replay();});
+</script>
+</body></html>
+
+
