@@ -3,7 +3,7 @@
 A 3D blooming lily animation built with Three.js, in deep burgundy, with a message of encouragement on a second page.
 
 ## Live demo
-https://YOUR-GITHUB-USERNAME.github.io/mercy-lily-bloom/
+https://melissanyakure.github.io/mercy-lily-bloom/
 
 ## Features
 - Three lilies with two buds that bloom slowly, one after another
@@ -21,4 +21,4 @@ https://YOUR-GITHUB-USERNAME.github.io/mercy-lily-bloom/
 - [Three.js](https://threejs.org/) (r128)
 
 ## Customise
-To change the message, edit the text inside the `<div class="card">` section in `index.html`.
+To change the message, edit the text inside the `<div class="card">` section in `index.html`
