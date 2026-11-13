@@ -21,4 +21,4 @@ https://melissanyakure.github.io/mercy-lily-bloom/
 - [Three.js](https://threejs.org/) (r128)
 
 ## Customise
-To change the message, edit the text inside the `<div class="card">` section in `index.html`
+To change the message, edit the text inside the `<div class="card">` section in `index.html`.
